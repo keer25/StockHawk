@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.udacity.stockhawk.R;
 import com.udacity.stockhawk.data.Contract;
 import com.udacity.stockhawk.data.PrefUtils;
+import com.udacity.stockhawk.ui.MainActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,11 +35,12 @@ import yahoofinance.quotes.stock.StockQuote;
 public final class QuoteSyncJob {
 
     private static final int ONE_OFF_ID = 2;
-    private static final String ACTION_DATA_UPDATED = "com.udacity.stockhawk.ACTION_DATA_UPDATED";
+    public static final String ACTION_DATA_UPDATED = "com.udacity.stockhawk.ACTION_DATA_UPDATED";
     private static final int PERIOD = 300000;
     private static final int INITIAL_BACKOFF = 10000;
     private static final int PERIODIC_ID = 1;
     private static final int YEARS_OF_HISTORY = 2;
+    private static InvalidStock invalidStock;
 
     private QuoteSyncJob() {
     }
@@ -79,8 +81,7 @@ public final class QuoteSyncJob {
                 StockQuote quote = stock.getQuote();
 
                 if(quote.getPrice() == null){
-                    Log.d("Hello", symbol);
-                    //Toast.makeText(context, String.format(context.getString(R.string.invalid_symbol), symbol), Toast.LENGTH_LONG).show();
+                    invalidStock.displayToast(String.format(context.getString(R.string.invalid_symbol), symbol));
                     stockPref.remove(symbol);
                     continue;
                 }
@@ -107,7 +108,6 @@ public final class QuoteSyncJob {
                 quoteCV.put(Contract.Quote.COLUMN_PRICE, price);
                 quoteCV.put(Contract.Quote.COLUMN_PERCENTAGE_CHANGE, percentChange);
                 quoteCV.put(Contract.Quote.COLUMN_ABSOLUTE_CHANGE, change);
-
 
                 quoteCV.put(Contract.Quote.COLUMN_HISTORY, historyBuilder.toString());
 
@@ -146,8 +146,9 @@ public final class QuoteSyncJob {
     }
 
 
-    public static synchronized void initialize(final Context context) {
+    public static synchronized void initialize(final Context context, InvalidStock stock) {
 
+        invalidStock = stock;
         schedulePeriodic(context);
         syncImmediately(context);
 
@@ -174,8 +175,11 @@ public final class QuoteSyncJob {
 
             scheduler.schedule(builder.build());
 
-
         }
+    }
+
+    public interface InvalidStock {
+        void displayToast(String message);
     }
 
 

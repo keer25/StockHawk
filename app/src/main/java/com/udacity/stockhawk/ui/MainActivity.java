@@ -1,6 +1,7 @@
 package com.udacity.stockhawk.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -10,6 +11,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -30,7 +32,7 @@ import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
         SwipeRefreshLayout.OnRefreshListener,
-        StockAdapter.StockAdapterOnClickHandler {
+        StockAdapter.StockAdapterOnClickHandler, QuoteSyncJob.InvalidStock {
 
     private static final int STOCK_LOADER = 0;
     @SuppressWarnings("WeakerAccess")
@@ -44,9 +46,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     TextView error;
     private StockAdapter adapter;
 
+    public static final String GRAPH_INTENT_EXTRA = "GraphIntentExtra";
+
     @Override
-    public void onClick(String symbol) {
+    public void onClick(String symbol, String history) {
         Timber.d("Symbol clicked: %s", symbol);
+        Intent intent = new Intent(this, GraphActivity.class);
+        intent.putExtra(GRAPH_INTENT_EXTRA, history);
+        startActivity(intent);
     }
 
     @Override
@@ -64,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         swipeRefreshLayout.setRefreshing(true);
         onRefresh();
 
-        QuoteSyncJob.initialize(this);
+        QuoteSyncJob.initialize(this, this);
         getSupportLoaderManager().initLoader(STOCK_LOADER, null, this);
 
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
@@ -187,5 +194,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void displayToast(String message) {
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+        Timber.d("Showed Toast");
     }
 }

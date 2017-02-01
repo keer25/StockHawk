@@ -39,4 +39,8 @@
     <string name="item_description_percent"><xliff:g>%1$s</xliff:g> stock at <xliff:g>%2$s</xliff:g> with <xliff:g>%3$s</xliff:g> change</string>
 
     <string name="invalid_symbol">Invalid symbol <xliff:g>%1$s</xliff:g></string>
+    <string name="label">Stock Value</string>
+    <string name="description">Stock value over time</string>
+
+    <string name="dollars" translatable="false">%1$d $</string>
 </resources>
